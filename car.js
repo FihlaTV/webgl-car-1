@@ -126,12 +126,16 @@ function main() {
 function keydown(ev, gl, u_ModelMatrix, u_NormalMatrix, u_isLighting) {
     switch (ev.keyCode) {
         case 38: // Up arrow key -> the positive rotation of arm1 around the y-axis
-            carZ = (carZ - distance);
-            wheelRotation = (wheelRotation + 20) % 360;
+            if (carZ > -33.0) {
+                carZ = carZ - distance;
+                wheelRotation = (wheelRotation - 20) % 360;
+            }
             break;
         case 40: // Down arrow key -> the negative rotation of arm1 around the y-axis
-            carZ = (carZ + distance);
-            wheelRotation = (wheelRotation - 20) % 360;
+            if (carZ < 10.0) {
+                carZ = carZ + distance;
+                wheelRotation = (wheelRotation + 20) % 360;
+            }
             break;
         case 39: // Right arrow key -> the positive rotation of arm1 around the y-axis
             carX += distance * Math.cos(45.0);
