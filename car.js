@@ -56,7 +56,8 @@ var carX = 0.0;           // Initial position of x-axis
 var carZ = 5.0;           // Initial position of z-axis
 var distance = 0.3;       // Distance to travel
 var wheelRotation = 0;    // Keeps track of wheel rotation
-
+var rDoorAngle = 0;
+var lDoorAngle = 0;
 
 function main() {
     // Retrieve <canvas> element
@@ -123,32 +124,32 @@ function main() {
 function move(direction, gl, u_ModelMatrix, u_NormalMatrix, u_isLighting) {
     switch (direction) {
         case 'n':
-            if (carZ <= 10 && carX >= -8.0 && carZ >= -33.0 && carX <= 8.0) {
+            if (carZ <= 10.2 && carX >= -7.8 && carZ >= -33.0 && carX <= 7.8) {
                 carZ -= distance * Math.sin(g_yAngle * (Math.PI / 180));
                 carX += distance * Math.cos(g_yAngle * (Math.PI / 180));
                 wheelRotation = (wheelRotation + 20) % 360;
-            } else if (carZ > 10) {
+            } else if (carZ > 10.2) {
                 carZ -= distance;
             } else if (carZ < -33.0) {
                 carZ += distance;
-            } else if (carX < -8.0) {
+            } else if (carX < -7.8) {
                 carX += distance;
-            } else if (carX > 8.0) {
+            } else if (carX > 7.8) {
                 carX -= distance;
             }
             break;
         case 's':
-            if (carZ <= 10 && carX >= -8.0 && carZ >= -33.0 && carX <= 8.0) {
+            if (carZ <= 10.2 && carX >= -7.8 && carZ >= -33.0 && carX <= 7.8) {
                 carZ += distance * Math.sin(g_yAngle * (Math.PI/180));
                 carX -= distance * Math.cos(g_yAngle * (Math.PI/180));
                 wheelRotation = (wheelRotation + 20) % 360;
-            } else if (carZ > 10) {
+            } else if (carZ > 10.2) {
                 carZ -= distance;
             } else if (carZ < -33.0) {
                 carZ += distance;
-            } else if (carX < -8.0) {
+            } else if (carX < -7.8) {
                 carX += distance;
-            } else if (carX > 8.0) {
+            } else if (carX > 7.8) {
                 carX -= distance;
             }
             break;
@@ -180,18 +181,20 @@ function keydown(move, gl, u_ModelMatrix, u_NormalMatrix, u_isLighting) {
         keysCount = 0,
         interval = null,
         trackedKeys = {
-            119: true, // W
-            87: true,  // w
-            115: true, // S
-            83: true,  // s
-            97: true,  // A
-            65: true,  // a
-            100: true, // D
-            68: true,  // d
-            37: true,  // left arrow
-            38: true,  // up arrow
-            39: true,  // right arrow
-            40: true   // down arrow
+            119: true,  // W
+            87: true,   // w
+            115: true,  // S
+            83: true,   // s
+            97: true,   // A
+            65: true,   // a
+            100: true,  // D
+            68: true,   // d
+            37: true,   // left arrow
+            38: true,   // up arrow
+            39: true,   // right arrow
+            40: true,   // down arrow
+            75: true,   // k
+            76: true    // l
         };
 
     document.onkeydown = function(event) {
@@ -208,6 +211,7 @@ function keydown(move, gl, u_ModelMatrix, u_NormalMatrix, u_isLighting) {
                 interval = setInterval(function() {
                     var direction = '';
 
+                    // TODO: Add more controls
                     // check if north or south
                     if (keys[119] || keys[87] || keys[38]) {
                         direction += 'n';
@@ -221,6 +225,14 @@ function keydown(move, gl, u_ModelMatrix, u_NormalMatrix, u_isLighting) {
                     } else if (keys[100] || keys[68] || keys[39]) {
                         direction += 'e';
                     }
+
+                    // open or close doors
+                    if (keys[75]) {
+                        direction += 'k';
+                    } else if (keys[76]) {
+                        direction += 'l';
+                    }
+
                     move(direction, gl, u_ModelMatrix, u_NormalMatrix, u_isLighting);
                 }, 1000 / 50);
             }
