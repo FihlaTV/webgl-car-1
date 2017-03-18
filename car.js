@@ -50,11 +50,12 @@ var projMatrix = new Matrix4();  // The projection matrix
 var g_normalMatrix = new Matrix4();  // Coordinate transformation matrix for normals
 
 // var ANGLE_STEP = 3.0;  // The increments of rotation angle (degrees)
-var g_xAngle = 0.0;    // The rotation x angle (degrees)
-var g_yAngle = 0.0;    // The rotation y angle (degrees)
-var carX = 0.0;        // Initial position of x-axis
-var carZ = 0.0;        // Initial position of z-axis
-var distance = 0.5;    // Distance to travel
+var g_xAngle = 0.0;       // The rotation x angle (degrees)
+var g_yAngle = 90.0;      // The rotation y angle (degrees)
+var carX = 0.0;           // Initial position of x-axis
+var carZ = 5.0;           // Initial position of z-axis
+var distance = 0.3;       // Distance to travel
+var wheelRotation = 0;    // Keeps track of wheel rotation
 
 
 function main() {
@@ -107,7 +108,8 @@ function main() {
     gl.uniform3fv(u_LightDirection, lightDirection.elements);
 
     // Calculate the view matrix and the projection matrix
-    viewMatrix.setLookAt(0, 4, 20, 0, 0, -100, 0, 1, 0);
+    // Matrix4.setLookAt(eyeX, eyeY, eyeZ, atX, atY, atZ, upX, upY, upZ)
+    viewMatrix.setLookAt(0, 3, 20, 0, 0, -100, 0, 1, 0);
     projMatrix.setPerspective(30, canvas.width/canvas.height, 1, 100);
     // Pass the model, view, and projection matrix to the uniform variable respectively
     gl.uniformMatrix4fv(u_ViewMatrix, false, viewMatrix.elements);
@@ -125,13 +127,16 @@ function keydown(ev, gl, u_ModelMatrix, u_NormalMatrix, u_isLighting) {
     switch (ev.keyCode) {
         case 38: // Up arrow key -> the positive rotation of arm1 around the y-axis
             carZ = (carZ - distance);
+            wheelRotation = (wheelRotation + 20) % 360;
             break;
         case 40: // Down arrow key -> the negative rotation of arm1 around the y-axis
             carZ = (carZ + distance);
+            wheelRotation = (wheelRotation - 20) % 360;
             break;
         case 39: // Right arrow key -> the positive rotation of arm1 around the y-axis
             carX += distance * Math.cos(45.0);
             carZ -= distance * Math.sin(45.0);
+            wheelRotation = (wheelRotation + 20) % 360;
             break;
         case 37: // Left arrow key -> the negative rotation of arm1 around the y-axis
             g_yAngle += 3.0;
@@ -146,7 +151,7 @@ function keydown(ev, gl, u_ModelMatrix, u_NormalMatrix, u_isLighting) {
     draw(gl, u_ModelMatrix, u_NormalMatrix, u_isLighting);
 }
 
-// function onKeyPress(callback) {
+// function keydown(callback) {
 //     var keys = {},
 //         keysCount = 0,
 //         interval = null,
@@ -215,7 +220,7 @@ function keydown(ev, gl, u_ModelMatrix, u_NormalMatrix, u_isLighting) {
 //     });
 // }
 
-function initVertexBuffers(gl) {
+function initVertexBuffers(gl, colorBlock) {
     // Create a cube
     //    v6----- v5
     //   /|      /|
@@ -234,14 +239,7 @@ function initVertexBuffers(gl) {
     ]);
 
 
-    var colors = new Float32Array([    // Colors
-        1, 0, 0,   1, 0, 0,   1, 0, 0,  1, 0, 0,     // v0-v1-v2-v3 front
-        1, 0, 0,   1, 0, 0,   1, 0, 0,  1, 0, 0,     // v0-v3-v4-v5 right
-        1, 0, 0,   1, 0, 0,   1, 0, 0,  1, 0, 0,     // v0-v5-v6-v1 up
-        1, 0, 0,   1, 0, 0,   1, 0, 0,  1, 0, 0,     // v1-v6-v7-v2 left
-        1, 0, 0,   1, 0, 0,   1, 0, 0,  1, 0, 0,     // v7-v4-v3-v2 down
-        1, 0, 0,   1, 0, 0,   1, 0, 0,  1, 0, 0　    // v4-v7-v6-v5 back
-    ]);
+    var colors = colorBlock;
 
 
     var normals = new Float32Array([    // Normal
@@ -333,24 +331,26 @@ function draw(gl, u_ModelMatrix, u_NormalMatrix, u_isLighting) {
     gl.uniform1i(u_isLighting, true); // Will apply lighting
 
     // Set the vertex coordinates and color (for the cube)
-    var n = initVertexBuffers(gl);
+    var n = initVertexBuffers(gl, colorBlock(1,0,0));
     if (n < 0) {
         console.log('Failed to set the vertex information');
         return;
     }
 
+    n = initVertexBuffers(gl, colorBlock(0.137255,0.556863,0.137255));
     // Model the plane
-    // pushMatrix(modelMatrix);
-    // modelMatrix.scale(15.0, 0.1, 75.0);
-    // modelMatrix.translate(0.0, -10, 0.0);
-    // drawbox(gl, u_ModelMatrix, u_NormalMatrix, n);
-    // modelMatrix = popMatrix();
+    pushMatrix(modelMatrix);
+    modelMatrix.scale(20.0, 0.1, 100.0);
+    modelMatrix.translate(0.0, -10, 0.0);
+    drawbox(gl, u_ModelMatrix, u_NormalMatrix, n);
+    modelMatrix = popMatrix();
 
     // Rotate, and then translate group of cubes
     modelMatrix.setTranslate(carX, 0, carZ);  // Translation (No translation is supported here)
     modelMatrix.rotate(g_yAngle, 0, 1, 0);    // Rotate along y axis
     modelMatrix.rotate(g_xAngle, 1, 0, 0);    // Rotate along x axis
 
+    n = initVertexBuffers(gl, colorBlock(0.258824,0.258824,1.0));
     // Model the body of the car
     pushMatrix(modelMatrix);
     // Scaling: length (x), height (y), width (z)
@@ -365,10 +365,12 @@ function draw(gl, u_ModelMatrix, u_NormalMatrix, u_isLighting) {
     drawbox(gl, u_ModelMatrix, u_NormalMatrix, n);
     modelMatrix = popMatrix();
 
+    n = initVertexBuffers(gl, colorBlock(0,0,0));
     // Model the left backwheel
     pushMatrix(modelMatrix);
     modelMatrix.scale(0.3, 0.3, 0.3);
     modelMatrix.translate(-1.5, -0.5, -1.3);
+    modelMatrix.rotate(wheelRotation,0,0,1);
     drawbox(gl, u_ModelMatrix, u_NormalMatrix, n);
     modelMatrix = popMatrix();
 
@@ -376,6 +378,7 @@ function draw(gl, u_ModelMatrix, u_NormalMatrix, u_isLighting) {
     pushMatrix(modelMatrix);
     modelMatrix.scale(0.3, 0.3, 0.3);
     modelMatrix.translate(1.5, -0.5, -1.3);
+    modelMatrix.rotate(wheelRotation,0,0,1);
     drawbox(gl, u_ModelMatrix, u_NormalMatrix, n);
     modelMatrix = popMatrix();
 
@@ -383,6 +386,7 @@ function draw(gl, u_ModelMatrix, u_NormalMatrix, u_isLighting) {
     pushMatrix(modelMatrix);
     modelMatrix.scale(0.3, 0.3, 0.3);
     modelMatrix.translate(-1.5, -0.5, 1.3);
+    modelMatrix.rotate(wheelRotation,0,0,1);
     drawbox(gl, u_ModelMatrix, u_NormalMatrix, n);
     modelMatrix = popMatrix();
 
@@ -390,6 +394,7 @@ function draw(gl, u_ModelMatrix, u_NormalMatrix, u_isLighting) {
     pushMatrix(modelMatrix);
     modelMatrix.scale(0.3, 0.3, 0.3);
     modelMatrix.translate(1.5, -0.5, 1.3);
+    modelMatrix.rotate(wheelRotation,0,0,1);
     drawbox(gl, u_ModelMatrix, u_NormalMatrix, n);
     modelMatrix = popMatrix();
 
@@ -400,20 +405,15 @@ function draw(gl, u_ModelMatrix, u_NormalMatrix, u_isLighting) {
     drawbox(gl, u_ModelMatrix, u_NormalMatrix, n);
     modelMatrix = popMatrix();
 
-    // Model the spare tyre
-    pushMatrix(modelMatrix);
-    modelMatrix.scale(0.3, 0.3, 0.3);
-    modelMatrix.translate(-2.5, 0.1, 0.0);
-    drawbox(gl, u_ModelMatrix, u_NormalMatrix, n);
-    modelMatrix = popMatrix();
-
+    n = initVertexBuffers(gl, colorBlock(0.658,0.658,0.658));
     // Model the bumper
     pushMatrix(modelMatrix);
-    modelMatrix.scale(0.15, 0.1, 0.75);
+    modelMatrix.scale(0.15, 0.1, 0.65);
     modelMatrix.translate(5, -1.3, 0.0);
     drawbox(gl, u_ModelMatrix, u_NormalMatrix, n);
     modelMatrix = popMatrix();
 
+    n = initVertexBuffers(gl, colorBlock(1,1,0));
     // Model the left headlight
     pushMatrix(modelMatrix);
     modelMatrix.scale(0.15, 0.15, 0.15);
@@ -428,6 +428,8 @@ function draw(gl, u_ModelMatrix, u_NormalMatrix, u_isLighting) {
     drawbox(gl, u_ModelMatrix, u_NormalMatrix, n);
     modelMatrix = popMatrix();
 
+
+    n = initVertexBuffers(gl, colorBlock(0.1,0.1,1.0));
     // Model the right door
     pushMatrix(modelMatrix);
     modelMatrix.scale(0.5, 0.2, 0.05);
@@ -441,6 +443,18 @@ function draw(gl, u_ModelMatrix, u_NormalMatrix, u_isLighting) {
     modelMatrix.translate(-0.3, 0.8, -8);
     drawbox(gl, u_ModelMatrix, u_NormalMatrix, n);
     modelMatrix = popMatrix();
+}
+
+function colorBlock(r, g, b) {
+    var colors = new Float32Array([    // Colors
+        r, g, b,   r, g, b,   r, g, b,  r, g, b,     // v0-v1-v2-v3 front
+        r, g, b,   r, g, b,   r, g, b,  r, g, b,     // v0-v3-v4-v5 right
+        r, g, b,   r, g, b,   r, g, b,  r, g, b,     // v0-v5-v6-v1 up
+        r, g, b,   r, g, b,   r, g, b,  r, g, b,     // v1-v6-v7-v2 left
+        r, g, b,   r, g, b,   r, g, b,  r, g, b,     // v7-v4-v3-v2 down
+        r, g, b,   r, g, b,   r, g, b,  r, g, b　    // v4-v7-v6-v5 back
+    ]);
+    return colors;
 }
 
 function drawbox(gl, u_ModelMatrix, u_NormalMatrix, n) {
