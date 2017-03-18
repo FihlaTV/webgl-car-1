@@ -115,114 +115,135 @@ function main() {
     gl.uniformMatrix4fv(u_ViewMatrix, false, viewMatrix.elements);
     gl.uniformMatrix4fv(u_ProjMatrix, false, projMatrix.elements);
 
-    document.onkeydown = function(ev) {
-        //TODO: Replace with own function
-        keydown(ev, gl, u_ModelMatrix, u_NormalMatrix, u_isLighting);
-    };
+    keydown(move, gl, u_ModelMatrix, u_NormalMatrix, u_isLighting);
 
     draw(gl, u_ModelMatrix, u_NormalMatrix, u_isLighting);
 }
 
-function keydown(ev, gl, u_ModelMatrix, u_NormalMatrix, u_isLighting) {
-    switch (ev.keyCode) {
-        case 38: // Up arrow key -> the positive rotation of arm1 around the y-axis
-            if (carZ > -33.0) {
-                carZ = carZ - distance;
-                wheelRotation = (wheelRotation - 20) % 360;
+function move(direction, gl, u_ModelMatrix, u_NormalMatrix, u_isLighting) {
+    switch (direction) {
+        case 'n':
+            if (carZ <= 10 && carX >= -8.0 && carZ >= -33.0 && carX <= 8.0) {
+                carZ -= distance * Math.sin(g_yAngle * (Math.PI / 180));
+                carX += distance * Math.cos(g_yAngle * (Math.PI / 180));
+                wheelRotation = (wheelRotation + 20) % 360;
+            } else if (carZ > 10) {
+                carZ -= distance;
+            } else if (carZ < -33.0) {
+                carZ += distance;
+            } else if (carX < -8.0) {
+                carX += distance;
+            } else if (carX > 8.0) {
+                carX -= distance;
             }
             break;
-        case 40: // Down arrow key -> the negative rotation of arm1 around the y-axis
-            if (carZ < 10.0) {
-                carZ = carZ + distance;
+        case 's':
+            if (carZ <= 10 && carX >= -8.0 && carZ >= -33.0 && carX <= 8.0) {
+                carZ += distance * Math.sin(g_yAngle * (Math.PI/180));
+                carX -= distance * Math.cos(g_yAngle * (Math.PI/180));
+                wheelRotation = (wheelRotation + 20) % 360;
+            } else if (carZ > 10) {
+                carZ -= distance;
+            } else if (carZ < -33.0) {
+                carZ += distance;
+            } else if (carX < -8.0) {
+                carX += distance;
+            } else if (carX > 8.0) {
+                carX -= distance;
+            }
+            break;
+        case 'e':
+            g_yAngle = (g_yAngle - 15.0) % 360;
+            if (carZ < 10 && carX > -8.0 && carZ > -33.0 && carX < 8.0) {
+                carZ -= distance * Math.sin(g_yAngle * (Math.PI/180));
+                carX += distance * Math.cos(g_yAngle * (Math.PI/180));
                 wheelRotation = (wheelRotation + 20) % 360;
             }
             break;
-        case 39: // Right arrow key -> the positive rotation of arm1 around the y-axis
-            carX += distance * Math.cos(45.0);
-            carZ -= distance * Math.sin(45.0);
-            wheelRotation = (wheelRotation + 20) % 360;
-            break;
-        case 37: // Left arrow key -> the negative rotation of arm1 around the y-axis
-            g_yAngle += 3.0;
-            // carX = (carX - distance);
+        case 'w':
+            g_yAngle = (g_yAngle + 15.0) % 360;
+            if (carZ < 10 && carX > -8.0 && carZ > -33.0 && carX < 8.0) {
+                carZ -= distance * Math.sin(g_yAngle * (Math.PI/180));
+                carX += distance * Math.cos(g_yAngle * (Math.PI/180));
+                wheelRotation = (wheelRotation + 20) % 360;
+            }
             break;
         default: return; // Skip drawing at no effective action
-
     }
 
-    // TODO: Call this in a loop?
     // Draw the scene
     draw(gl, u_ModelMatrix, u_NormalMatrix, u_isLighting);
 }
 
-// function keydown(callback) {
-//     var keys = {},
-//         keysCount = 0,
-//         interval = null,
-//         trackedKeys = {
-//             119: true, // W
-//             87: true,  // w
-//             115: true, // S
-//             83: true,  // s
-//             97: true,  // A
-//             65: true,  // a
-//             100: true, // D
-//             68: true,  // d
-//             37: true,  // left arrow
-//             38: true,  // up arrow
-//             39: true,  // right arrow
-//             40: true   // down arrow
-//         };
-//
-//     $(document).keydown(function(event) {
-//         var code = event.which;
-//
-//         if (trackedKeys[code]) {
-//             if (!keys[code]) {
-//                 keys[code] = true;
-//                 keysCount++;
-//             }
-//
-//             if (interval === null) {
-//                 interval = setInterval(function() {
-//                     var direction = '';
-//
-//                     // check if north or south
-//                     if (keys[119] || keys[87] || keys[38]) {
-//                         direction = 'n';
-//                     } else if (keys[115] || keys[83] || keys[40]) {
-//                         direction = 's';
-//                     }
-//
-//                     // concat west or east
-//                     if (keys[97] || keys[65] || keys[37]) {
-//                         direction += 'w';
-//                     } else if (keys[100] || keys[68] || keys[39]) {
-//                         direction += 'e';
-//                     }
-//
-//                     callback(direction);
-//                 }, 1000 / 50);
-//             }
-//         }
-//     });
-//
-//     $(document).keyup(function(event) {
-//         var code = event.which;
-//
-//         if (keys[code]) {
-//             delete keys[code];
-//             keysCount--;
-//         }
-//
-//         // need to check if keyboard movement stopped
-//         if ((trackedKeys[code]) && (keysCount === 0)) {
-//             clearInterval(interval);
-//             interval = null;
-//             callback('none');
-//         }
-//     });
-// }
+function keydown(move, gl, u_ModelMatrix, u_NormalMatrix, u_isLighting) {
+    var keys = {},
+        keysCount = 0,
+        interval = null,
+        trackedKeys = {
+            119: true, // W
+            87: true,  // w
+            115: true, // S
+            83: true,  // s
+            97: true,  // A
+            65: true,  // a
+            100: true, // D
+            68: true,  // d
+            37: true,  // left arrow
+            38: true,  // up arrow
+            39: true,  // right arrow
+            40: true   // down arrow
+        };
+
+    document.onkeydown = function(event) {
+        event = event || window.event;
+        var code = event.which || event.keyCode;
+
+        if (trackedKeys[code]) {
+            if (!keys[code]) {
+                keys[code] = true;
+                keysCount++;
+            }
+
+            if (interval === null) {
+                interval = setInterval(function() {
+                    var direction = '';
+
+                    // check if north or south
+                    if (keys[119] || keys[87] || keys[38]) {
+                        direction += 'n';
+                    } else if (keys[115] || keys[83] || keys[40]) {
+                        direction += 's';
+                    }
+
+                    // concat west or east
+                    if (keys[97] || keys[65] || keys[37]) {
+                        direction += 'w';
+                    } else if (keys[100] || keys[68] || keys[39]) {
+                        direction += 'e';
+                    }
+                    move(direction, gl, u_ModelMatrix, u_NormalMatrix, u_isLighting);
+                }, 1000 / 50);
+            }
+        }
+    };
+
+    document.onkeyup = function(event) {
+        event = event || window.event;
+        var code = event.which;
+
+        if (keys[code]) {
+            delete keys[code];
+            keysCount--;
+        }
+
+        // need to check if keyboard movement stopped
+        if ((trackedKeys[code]) && (keysCount === 0)) {
+            clearInterval(interval);
+            interval = null;
+            move('none', gl, u_ModelMatrix, u_NormalMatrix, u_isLighting);
+        }
+    };
+}
 
 function initVertexBuffers(gl, colorBlock) {
     // Create a cube
@@ -345,7 +366,7 @@ function draw(gl, u_ModelMatrix, u_NormalMatrix, u_isLighting) {
     // Model the plane
     pushMatrix(modelMatrix);
     modelMatrix.scale(20.0, 0.1, 100.0);
-    modelMatrix.translate(0.0, -10, 0.0);
+    modelMatrix.translate(0.0, -10.5, 0.0);
     drawbox(gl, u_ModelMatrix, u_NormalMatrix, n);
     modelMatrix = popMatrix();
 
@@ -431,7 +452,6 @@ function draw(gl, u_ModelMatrix, u_NormalMatrix, u_isLighting) {
     modelMatrix.translate(5, 0.75, 1.5);
     drawbox(gl, u_ModelMatrix, u_NormalMatrix, n);
     modelMatrix = popMatrix();
-
 
     n = initVertexBuffers(gl, colorBlock(0.1,0.1,1.0));
     // Model the right door
