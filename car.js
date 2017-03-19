@@ -110,7 +110,7 @@ function main() {
 
     // Calculate the view matrix and the projection matrix
     // Matrix4.setLookAt(eyeX, eyeY, eyeZ, atX, atY, atZ, upX, upY, upZ)
-    viewMatrix.setLookAt(0, 3, 20, 0, 0, -100, 0, 1, 0);
+    viewMatrix.setLookAt(0, 3, 20, 0, 0, 0, 0, 1, 0);
     projMatrix.setPerspective(30, canvas.width/canvas.height, 1, 100);
     // Pass the model, view, and projection matrix to the uniform variable respectively
     gl.uniformMatrix4fv(u_ViewMatrix, false, viewMatrix.elements);
@@ -124,41 +124,38 @@ function main() {
 function move(direction, gl, u_ModelMatrix, u_NormalMatrix, u_isLighting, u_ViewMatrix, u_ProjMatrix) {
     switch (direction) {
         case 'n':
-            // carZ -= 0.3 * Math.sin(g_yAngle * (Math.PI / 180));
-            // carX += 0.3 * Math.cos(g_yAngle * (Math.PI / 180));
-            // wheelRotation = (wheelRotation + 20) % 360;
-            if (carZ <= 50 && carX >= -45 && carZ >= -12 && carX <= 45) {
+            if (carZ <= 25 && carX >= -23 && carZ >= -20 && carX <= 23) {
                 carZ -= 0.3 * Math.sin(g_yAngle * (Math.PI / 180));
                 carX += 0.3 * Math.cos(g_yAngle * (Math.PI / 180));
-                wheelRotation = (wheelRotation + 20) % 360;
-            } else if (carZ > 50) {
+                wheelRotation = (wheelRotation - 20) % 360;
+            } else if (carZ > 25) {
                 carZ -= distance;
-            } else if (carZ < -12) {
+            } else if (carZ < -20) {
                 carZ += distance;
-            } else if (carX < -45) {
+            } else if (carX < -23) {
                 carX += distance;
-            } else if (carX > 45) {
+            } else if (carX > 23) {
                 carX -= distance;
             }
             break;
         case 's':
-            if (carZ <= 50 && carX >= -45 && carZ >= -20 && carX <= 50) {
+            if (carZ <= 25 && carX >= -23 && carZ >= -20 && carX <= 23) {
                 carZ += distance * Math.sin(g_yAngle * (Math.PI/180));
                 carX -= distance * Math.cos(g_yAngle * (Math.PI/180));
                 wheelRotation = (wheelRotation + 20) % 360;
-            } else if (carZ > 50) {
+            } else if (carZ > 25) {
                 carZ -= distance;
-            } else if (carZ < -50) {
+            } else if (carZ < -20) {
                 carZ += distance;
-            } else if (carX < -50) {
+            } else if (carX < -23) {
                 carX += distance;
-            } else if (carX > 50) {
+            } else if (carX > 23) {
                 carX -= distance;
             }
             break;
         case 'e':
             g_yAngle = (g_yAngle - 15.0) % 360;
-            if (carZ < 50 && carX > -45 && carZ > -20 && carX < 50) {
+            if (carZ < 25 && carX > -23 && carZ > -20 && carX < 23) {
                 carZ -= distance * Math.sin(g_yAngle * (Math.PI/180));
                 carX += distance * Math.cos(g_yAngle * (Math.PI/180));
                 wheelRotation = (wheelRotation + 20) % 360;
@@ -166,34 +163,34 @@ function move(direction, gl, u_ModelMatrix, u_NormalMatrix, u_isLighting, u_View
             break;
         case 'w':
             g_yAngle = (g_yAngle + 15.0) % 360;
-            if (carZ < 50 && carX > -45 && carZ > -20 && carX < 50) {
+            if (carZ < 25 && carX > -23 && carZ > -20 && carX < 23) {
                 carZ -= distance * Math.sin(g_yAngle * (Math.PI/180));
                 carX += distance * Math.cos(g_yAngle * (Math.PI/180));
                 wheelRotation = (wheelRotation + 20) % 360;
             }
             break;
-        // Open door
+        // Open left door
         case 'j':
             if (lDoorAngle == -60) {
                 break;
             }
             lDoorAngle -= 3.0;
             break;
-        // Close door
+        // Close left door
         case 'h':
             if (lDoorAngle == 0) {
                 break;
             }
             lDoorAngle += 3.0;
             break;
-        // Open door
+        // Open right door
         case 'k':
             if (rDoorAngle == 60) {
                 break;
             }
             rDoorAngle += 3.0;
             break;
-        // Close door
+        // Close right door
         case 'l':
             if (rDoorAngle == 0) {
                 break;
@@ -522,9 +519,10 @@ function draw(gl, u_ModelMatrix, u_NormalMatrix, u_isLighting, u_ViewMatrix, u_P
     drawbox(gl, u_ModelMatrix, u_NormalMatrix, n);
     modelMatrix = popMatrix();
 
+    // Allow camera to track car
     var canvas = document.getElementById('webgl');
     projMatrix.setPerspective(30, canvas.width/canvas.height, 1, 100);
-    projMatrix.lookAt(0,5,20,(carX / 1.5),0,(carZ / 3),0,1,0);
+    projMatrix.lookAt(0, 6, 25, (carX / 1.5), 0, (carZ / 3), 0, 1, 0);
     gl.uniformMatrix4fv(u_ProjMatrix, false, projMatrix.elements);
 
 }
