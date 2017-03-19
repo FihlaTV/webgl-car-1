@@ -116,47 +116,49 @@ function main() {
     gl.uniformMatrix4fv(u_ViewMatrix, false, viewMatrix.elements);
     gl.uniformMatrix4fv(u_ProjMatrix, false, projMatrix.elements);
 
-    keydown(move, gl, u_ModelMatrix, u_NormalMatrix, u_isLighting);
+    keydown(move, gl, u_ModelMatrix, u_NormalMatrix, u_isLighting, u_ViewMatrix, u_ProjMatrix);
 
-    draw(gl, u_ModelMatrix, u_NormalMatrix, u_isLighting);
+    draw(gl, u_ModelMatrix, u_NormalMatrix, u_isLighting, u_ViewMatrix, u_ProjMatrix);
 }
 
-function move(direction, gl, u_ModelMatrix, u_NormalMatrix, u_isLighting) {
-    var doorOpen = false;
+function move(direction, gl, u_ModelMatrix, u_NormalMatrix, u_isLighting, u_ViewMatrix, u_ProjMatrix) {
     switch (direction) {
         case 'n':
-            if (carZ <= 10.2 && carX >= -7.8 && carZ >= -33.0 && carX <= 7.8) {
+            // carZ -= 0.3 * Math.sin(g_yAngle * (Math.PI / 180));
+            // carX += 0.3 * Math.cos(g_yAngle * (Math.PI / 180));
+            // wheelRotation = (wheelRotation + 20) % 360;
+            if (carZ <= 50 && carX >= -45 && carZ >= -12 && carX <= 45) {
                 carZ -= 0.3 * Math.sin(g_yAngle * (Math.PI / 180));
                 carX += 0.3 * Math.cos(g_yAngle * (Math.PI / 180));
                 wheelRotation = (wheelRotation + 20) % 360;
-            } else if (carZ > 10.2) {
+            } else if (carZ > 50) {
                 carZ -= distance;
-            } else if (carZ < -33.0) {
+            } else if (carZ < -12) {
                 carZ += distance;
-            } else if (carX < -7.8) {
+            } else if (carX < -45) {
                 carX += distance;
-            } else if (carX > 7.8) {
+            } else if (carX > 45) {
                 carX -= distance;
             }
             break;
         case 's':
-            if (carZ <= 10.2 && carX >= -7.8 && carZ >= -33.0 && carX <= 7.8) {
+            if (carZ <= 50 && carX >= -45 && carZ >= -20 && carX <= 50) {
                 carZ += distance * Math.sin(g_yAngle * (Math.PI/180));
                 carX -= distance * Math.cos(g_yAngle * (Math.PI/180));
                 wheelRotation = (wheelRotation + 20) % 360;
-            } else if (carZ > 10.2) {
+            } else if (carZ > 50) {
                 carZ -= distance;
-            } else if (carZ < -33.0) {
+            } else if (carZ < -50) {
                 carZ += distance;
-            } else if (carX < -7.8) {
+            } else if (carX < -50) {
                 carX += distance;
-            } else if (carX > 7.8) {
+            } else if (carX > 50) {
                 carX -= distance;
             }
             break;
         case 'e':
             g_yAngle = (g_yAngle - 15.0) % 360;
-            if (carZ < 10 && carX > -8.0 && carZ > -33.0 && carX < 8.0) {
+            if (carZ < 50 && carX > -45 && carZ > -20 && carX < 50) {
                 carZ -= distance * Math.sin(g_yAngle * (Math.PI/180));
                 carX += distance * Math.cos(g_yAngle * (Math.PI/180));
                 wheelRotation = (wheelRotation + 20) % 360;
@@ -164,7 +166,7 @@ function move(direction, gl, u_ModelMatrix, u_NormalMatrix, u_isLighting) {
             break;
         case 'w':
             g_yAngle = (g_yAngle + 15.0) % 360;
-            if (carZ < 10 && carX > -8.0 && carZ > -33.0 && carX < 8.0) {
+            if (carZ < 50 && carX > -45 && carZ > -20 && carX < 50) {
                 carZ -= distance * Math.sin(g_yAngle * (Math.PI/180));
                 carX += distance * Math.cos(g_yAngle * (Math.PI/180));
                 wheelRotation = (wheelRotation + 20) % 360;
@@ -202,10 +204,10 @@ function move(direction, gl, u_ModelMatrix, u_NormalMatrix, u_isLighting) {
     }
 
     // Draw the scene
-    draw(gl, u_ModelMatrix, u_NormalMatrix, u_isLighting);
+    draw(gl, u_ModelMatrix, u_NormalMatrix, u_isLighting, u_ViewMatrix, u_ProjMatrix);
 }
 
-function keydown(move, gl, u_ModelMatrix, u_NormalMatrix, u_isLighting) {
+function keydown(move, gl, u_ModelMatrix, u_NormalMatrix, u_isLighting, u_ViewMatrix, u_ProjMatrix) {
     var keys = {},
         keysCount = 0,
         interval = null,
@@ -271,7 +273,7 @@ function keydown(move, gl, u_ModelMatrix, u_NormalMatrix, u_isLighting) {
                         direction += 'l';
                     }
 
-                    move(direction, gl, u_ModelMatrix, u_NormalMatrix, u_isLighting);
+                    move(direction, gl, u_ModelMatrix, u_NormalMatrix, u_isLighting, u_ViewMatrix, u_ProjMatrix);
                 }, 1000 / 50);
             }
         }
@@ -290,7 +292,7 @@ function keydown(move, gl, u_ModelMatrix, u_NormalMatrix, u_isLighting) {
         if ((trackedKeys[code]) && (keysCount === 0)) {
             clearInterval(interval);
             interval = null;
-            move('none', gl, u_ModelMatrix, u_NormalMatrix, u_isLighting);
+            move('none', gl, u_ModelMatrix, u_NormalMatrix, u_isLighting, u_ViewMatrix, u_ProjMatrix);
         }
     };
 }
@@ -391,9 +393,7 @@ function popMatrix() { // Retrieve the matrix from the array
     return g_matrixStack.pop();
 }
 
-function draw(gl, u_ModelMatrix, u_NormalMatrix, u_isLighting) {
-
-    // Clear color and depth buffer
+function draw(gl, u_ModelMatrix, u_NormalMatrix, u_isLighting, u_ViewMatrix, u_ProjMatrix) {// Clear color and depth buffer
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     gl.uniform1i(u_isLighting, false); // Will not apply lighting
@@ -415,7 +415,7 @@ function draw(gl, u_ModelMatrix, u_NormalMatrix, u_isLighting) {
     n = initVertexBuffers(gl, colorBlock(0.137255,0.556863,0.137255));
     // Model the plane
     pushMatrix(modelMatrix);
-    modelMatrix.scale(20.0, 0.1, 100.0);
+    modelMatrix.scale(50.0, 0.1, 50.0);
     modelMatrix.translate(0.0, -10.5, 0.0);
     drawbox(gl, u_ModelMatrix, u_NormalMatrix, n);
     modelMatrix = popMatrix();
@@ -522,6 +522,10 @@ function draw(gl, u_ModelMatrix, u_NormalMatrix, u_isLighting) {
     drawbox(gl, u_ModelMatrix, u_NormalMatrix, n);
     modelMatrix = popMatrix();
 
+    var canvas = document.getElementById('webgl');
+    projMatrix.setPerspective(30, canvas.width/canvas.height, 1, 100);
+    projMatrix.lookAt(0,5,20,(carX / 1.5),0,(carZ / 3),0,1,0);
+    gl.uniformMatrix4fv(u_ProjMatrix, false, projMatrix.elements);
 
 }
 
