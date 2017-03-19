@@ -51,7 +51,7 @@ var g_normalMatrix = new Matrix4();  // Coordinate transformation matrix for nor
 
 // var ANGLE_STEP = 3.0;  // The increments of rotation angle (degrees)
 var g_xAngle = 0.0;       // The rotation x angle (degrees)
-var g_yAngle = 90.0;      // The rotation y angle (degrees)
+var g_yAngle = 0.0;      // The rotation y angle (degrees)
 var carX = 0.0;           // Initial position of x-axis
 var carZ = 5.0;           // Initial position of z-axis
 var distance = 0.3;       // Distance to travel
@@ -122,11 +122,12 @@ function main() {
 }
 
 function move(direction, gl, u_ModelMatrix, u_NormalMatrix, u_isLighting) {
+    var doorOpen = false;
     switch (direction) {
         case 'n':
             if (carZ <= 10.2 && carX >= -7.8 && carZ >= -33.0 && carX <= 7.8) {
-                carZ -= distance * Math.sin(g_yAngle * (Math.PI / 180));
-                carX += distance * Math.cos(g_yAngle * (Math.PI / 180));
+                carZ -= 0.3 * Math.sin(g_yAngle * (Math.PI / 180));
+                carX += 0.3 * Math.cos(g_yAngle * (Math.PI / 180));
                 wheelRotation = (wheelRotation + 20) % 360;
             } else if (carZ > 10.2) {
                 carZ -= distance;
@@ -169,6 +170,34 @@ function move(direction, gl, u_ModelMatrix, u_NormalMatrix, u_isLighting) {
                 wheelRotation = (wheelRotation + 20) % 360;
             }
             break;
+        // Open door
+        case 'j':
+            if (lDoorAngle == -60) {
+                break;
+            }
+            lDoorAngle -= 3.0;
+            break;
+        // Close door
+        case 'h':
+            if (lDoorAngle == 0) {
+                break;
+            }
+            lDoorAngle += 3.0;
+            break;
+        // Open door
+        case 'k':
+            if (rDoorAngle == 60) {
+                break;
+            }
+            rDoorAngle += 3.0;
+            break;
+        // Close door
+        case 'l':
+            if (rDoorAngle == 0) {
+                break;
+            }
+            rDoorAngle -= 3.0;
+            break;
         default: return; // Skip drawing at no effective action
     }
 
@@ -193,6 +222,8 @@ function keydown(move, gl, u_ModelMatrix, u_NormalMatrix, u_isLighting) {
             38: true,   // up arrow
             39: true,   // right arrow
             40: true,   // down arrow
+            72: true,   // h
+            74: true,   // j
             75: true,   // k
             76: true    // l
         };
@@ -226,7 +257,14 @@ function keydown(move, gl, u_ModelMatrix, u_NormalMatrix, u_isLighting) {
                         direction += 'e';
                     }
 
-                    // open or close doors
+                    // open or close left door
+                    if (keys[74]) {
+                        direction += 'j';
+                    } else if (keys[72]) {
+                        direction += 'h';
+                    }
+
+                    // open or close right door
                     if (keys[75]) {
                         direction += 'k';
                     } else if (keys[76]) {
@@ -468,17 +506,23 @@ function draw(gl, u_ModelMatrix, u_NormalMatrix, u_isLighting) {
     n = initVertexBuffers(gl, colorBlock(0.1,0.1,1.0));
     // Model the right door
     pushMatrix(modelMatrix);
+    modelMatrix.translate(0, 0.18, 0.4);
+    modelMatrix.rotate(rDoorAngle, 0, 1, 0);
+    modelMatrix.translate(-0.175, 0, 0);
     modelMatrix.scale(0.5, 0.2, 0.05);
-    modelMatrix.translate(-0.3, 0.8, 8);
     drawbox(gl, u_ModelMatrix, u_NormalMatrix, n);
     modelMatrix = popMatrix();
 
-    // Model the right door
+    // Model the left door
     pushMatrix(modelMatrix);
+    modelMatrix.translate(0, 0.18, -0.4);
+    modelMatrix.rotate(lDoorAngle, 0, 1, 0);
+    modelMatrix.translate(-0.175, 0, 0);
     modelMatrix.scale(0.5, 0.2, 0.05);
-    modelMatrix.translate(-0.3, 0.8, -8);
     drawbox(gl, u_ModelMatrix, u_NormalMatrix, n);
     modelMatrix = popMatrix();
+
+
 }
 
 function colorBlock(r, g, b) {
