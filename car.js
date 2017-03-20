@@ -16,6 +16,7 @@ var VSHADER_SOURCE =
     'uniform mat4 u_ProjMatrix;\n' +
     'uniform vec3 u_LightColor;\n' +     // Light color
     'uniform vec3 u_LightDirection;\n' + // Light direction (in the world coordinate, normalized)
+    'uniform vec3 u_LightPosition;\n' +  // Position of the light source
     'uniform vec3 u_AmbientLight;\n' +   // Color of ambient light
     'varying vec4 v_Color;\n' +
     'uniform bool u_isLighting;\n' +
@@ -33,7 +34,18 @@ var VSHADER_SOURCE =
     '     v_Color = vec4(diffuse + ambient, a_Color.a);\n' +  '  }\n' +
     '  else\n' +
     '  {\n' +
-    '     v_Color = a_Color;\n' +
+    '     vec3 normal = normalize((u_NormalMatrix * a_Normal).xyz);\n' +
+    // Recalculate world position of vertex
+    '     vec4 vertexPosition = u_ModelMatrix * a_Position;\n' +
+    // Calculate the light direction and normalize
+    '     vec3 lightDirection = normalize(u_LightPosition - vec3(vertexPosition));\n' +
+    '     float nDotL = max(dot(lightDirection, normal), 0.0);\n' +
+    // Calculate the color due to diffuse reflection
+    '     vec3 diffuse = u_LightColor * a_Color.rgb * nDotL;\n' +
+    // Calculate color from ambient reflection
+    '     vec3 ambient = u_AmbientLight * a_Color.rgb;\n' +
+    '     v_Color = vec4(diffuse + ambient, a_Color.a);\n' +
+    // '     v_Color = a_Color;\n' +
     '  }\n' +
     '}\n';
 
@@ -61,6 +73,7 @@ var distance = 0.3;       // Distance to travel
 var wheelRotation = 0;    // Keeps track of wheel rotation
 var rDoorAngle = 0;
 var lDoorAngle = 0;
+var isPointLit = false;
 
 function main() {
     // Retrieve <canvas> element
@@ -91,6 +104,7 @@ function main() {
     var u_ViewMatrix = gl.getUniformLocation(gl.program, 'u_ViewMatrix');
     var u_NormalMatrix = gl.getUniformLocation(gl.program, 'u_NormalMatrix');
     var u_ProjMatrix = gl.getUniformLocation(gl.program, 'u_ProjMatrix');
+    var u_LightPosition = gl.getUniformLocation(gl.program, 'u_LightPosition');
     var u_LightColor = gl.getUniformLocation(gl.program, 'u_LightColor');
     var u_LightDirection = gl.getUniformLocation(gl.program, 'u_LightDirection');
     var u_AmbientLight = gl.getUniformLocation(gl.program, 'u_AmbientLight');
@@ -107,6 +121,8 @@ function main() {
 
     // Set the light color (white)
     gl.uniform3f(u_LightColor, 1.0, 1.0, 1.0);
+    // Set position of light source (in world coordinate)
+    gl.uniform3f(u_LightPosition, 0.0, 15.0, 20.0);
     // Set the light direction (in the world coordinate)
     var lightDirection = new Vector3([0.5, 3.0, 4.0]);
     lightDirection.normalize();     // Normalize
@@ -158,6 +174,7 @@ function move(direction, gl, u_ModelMatrix, u_NormalMatrix, u_isLighting, u_View
                 carX -= distance;
             }
             break;
+        case "ne":
         case 'e':
             g_yAngle = (g_yAngle - 15.0) % 360;
             if (carZ < 25 && carX > -23 && carZ > -20 && carX < 23) {
@@ -166,11 +183,28 @@ function move(direction, gl, u_ModelMatrix, u_NormalMatrix, u_isLighting, u_View
                 wheelRotation = (wheelRotation + 20) % 360;
             }
             break;
+        case "nw":
         case 'w':
             g_yAngle = (g_yAngle + 15.0) % 360;
             if (carZ < 25 && carX > -23 && carZ > -20 && carX < 23) {
                 carZ -= distance * Math.sin(g_yAngle * (Math.PI/180));
                 carX += distance * Math.cos(g_yAngle * (Math.PI/180));
+                wheelRotation = (wheelRotation + 20) % 360;
+            }
+            break;
+        case "sw":
+            g_yAngle = (g_yAngle - 15.0) % 360;
+            if (carZ <= 25 && carX >= -23 && carZ >= -20 && carX <= 23) {
+                carZ += distance * Math.sin(g_yAngle * (Math.PI / 180));
+                carX -= distance * Math.cos(g_yAngle * (Math.PI / 180));
+                wheelRotation = (wheelRotation + 20) % 360;
+            }
+            break;
+        case "se":
+            g_yAngle = (g_yAngle + 15.0) % 360;
+            if (carZ <= 25 && carX >= -23 && carZ >= -20 && carX <= 23) {
+                carZ += distance * Math.sin(g_yAngle * (Math.PI / 180));
+                carX -= distance * Math.cos(g_yAngle * (Math.PI / 180));
                 wheelRotation = (wheelRotation + 20) % 360;
             }
             break;
@@ -202,6 +236,10 @@ function move(direction, gl, u_ModelMatrix, u_NormalMatrix, u_isLighting, u_View
             }
             rDoorAngle -= 3.0;
             break;
+        case 'p':
+            isPointLit = !isPointLit;
+
+            break;
         default: return; // Skip drawing at no effective action
     }
 
@@ -229,9 +267,11 @@ function keydown(move, gl, u_ModelMatrix, u_NormalMatrix, u_isLighting, u_ViewMa
             72: true,   // h
             74: true,   // j
             75: true,   // k
-            76: true    // l
+            76: true,   // l
+            80: true    // p
         };
 
+    flag = false;
     document.onkeydown = function(event) {
         event = event || window.event;
         var code = event.which || event.keyCode;
@@ -274,6 +314,11 @@ function keydown(move, gl, u_ModelMatrix, u_NormalMatrix, u_isLighting, u_ViewMa
                         direction += 'l';
                     }
 
+                    if (keys[80] && !flag) {
+                        flag = true;
+                        direction += 'p';
+                    }
+
                     move(direction, gl, u_ModelMatrix, u_NormalMatrix, u_isLighting, u_ViewMatrix, u_ProjMatrix);
                 }, 1000 / 50);
             }
@@ -287,6 +332,10 @@ function keydown(move, gl, u_ModelMatrix, u_NormalMatrix, u_isLighting, u_ViewMa
         if (keys[code]) {
             delete keys[code];
             keysCount--;
+        }
+
+        if (code == 80) {
+            flag = false;
         }
 
         // need to check if keyboard movement stopped
@@ -404,7 +453,9 @@ function draw(gl, u_ModelMatrix, u_NormalMatrix, u_isLighting, u_ViewMatrix, u_P
     // Pass the model matrix to the uniform variable
     gl.uniformMatrix4fv(u_ModelMatrix, false, modelMatrix.elements);
 
-    gl.uniform1i(u_isLighting, true); // Will apply lighting
+    if (!isPointLit) {
+        gl.uniform1i(u_isLighting, true); // Will apply lighting
+    }
 
     // Set the vertex coordinates and color (for the cube)
     var n = initVertexBuffers(gl, colorBlock(1,0,0));
