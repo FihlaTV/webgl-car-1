@@ -241,7 +241,6 @@ function keydown(move, gl, u_ModelMatrix, u_NormalMatrix, u_isLighting, u_ViewMa
                 interval = setInterval(function() {
                     var direction = '';
 
-                    // TODO: Add more controls
                     // check if north or south
                     if (keys[119] || keys[87] || keys[38]) {
                         direction += 'n';
