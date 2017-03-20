@@ -238,7 +238,6 @@ function move(direction, gl, u_ModelMatrix, u_NormalMatrix, u_isLighting, u_View
             break;
         case 'p':
             isPointLit = !isPointLit;
-
             break;
         default: return; // Skip drawing at no effective action
     }
@@ -271,7 +270,7 @@ function keydown(move, gl, u_ModelMatrix, u_NormalMatrix, u_isLighting, u_ViewMa
             80: true    // p
         };
 
-    flag = false;
+    var flag = false;
     document.onkeydown = function(event) {
         event = event || window.event;
         var code = event.which || event.keyCode;
