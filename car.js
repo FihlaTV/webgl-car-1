@@ -16,6 +16,7 @@ var VSHADER_SOURCE =
     'uniform mat4 u_ProjMatrix;\n' +
     'uniform vec3 u_LightColor;\n' +     // Light color
     'uniform vec3 u_LightDirection;\n' + // Light direction (in the world coordinate, normalized)
+    'uniform vec3 u_AmbientLight;\n' +   // Color of ambient light
     'varying vec4 v_Color;\n' +
     'uniform bool u_isLighting;\n' +
     'void main() {\n' +
@@ -27,7 +28,9 @@ var VSHADER_SOURCE =
     '     float nDotL = max(dot(normal, u_LightDirection), 0.0);\n' +
           // Calculate the color due to diffuse reflection
     '     vec3 diffuse = u_LightColor * a_Color.rgb * nDotL;\n' +
-    '     v_Color = vec4(diffuse, a_Color.a);\n' +  '  }\n' +
+          // Calculate color from ambient reflection
+    '     vec3 ambient = u_AmbientLight * a_Color.rgb;\n' +
+    '     v_Color = vec4(diffuse + ambient, a_Color.a);\n' +  '  }\n' +
     '  else\n' +
     '  {\n' +
     '     v_Color = a_Color;\n' +
@@ -90,6 +93,7 @@ function main() {
     var u_ProjMatrix = gl.getUniformLocation(gl.program, 'u_ProjMatrix');
     var u_LightColor = gl.getUniformLocation(gl.program, 'u_LightColor');
     var u_LightDirection = gl.getUniformLocation(gl.program, 'u_LightDirection');
+    var u_AmbientLight = gl.getUniformLocation(gl.program, 'u_AmbientLight');
 
     // Trigger using lighting or not
     var u_isLighting = gl.getUniformLocation(gl.program, 'u_isLighting');
@@ -107,6 +111,7 @@ function main() {
     var lightDirection = new Vector3([0.5, 3.0, 4.0]);
     lightDirection.normalize();     // Normalize
     gl.uniform3fv(u_LightDirection, lightDirection.elements);
+    gl.uniform3f(u_AmbientLight, 0.15, 0.15, 0.15);
 
     // Calculate the view matrix and the projection matrix
     // Matrix4.setLookAt(eyeX, eyeY, eyeZ, atX, atY, atZ, upX, upY, upZ)
