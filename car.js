@@ -64,7 +64,6 @@ var viewMatrix = new Matrix4();  // The view matrix
 var projMatrix = new Matrix4();  // The projection matrix
 var g_normalMatrix = new Matrix4();  // Coordinate transformation matrix for normals
 
-// var ANGLE_STEP = 3.0;  // The increments of rotation angle (degrees)
 var g_xAngle = 0.0;       // The rotation x angle (degrees)
 var g_yAngle = 0.0;      // The rotation y angle (degrees)
 var carX = 0.0;           // Initial position of x-axis
@@ -472,7 +471,7 @@ function draw(gl, u_ModelMatrix, u_NormalMatrix, u_isLighting, u_ViewMatrix, u_P
     modelMatrix = popMatrix();
 
     // Rotate, and then translate group of cubes
-    modelMatrix.setTranslate(carX, 0, carZ);  // Translation (No translation is supported here)
+    modelMatrix.setTranslate(carX, 0, carZ);  // Translation
     modelMatrix.rotate(g_yAngle, 0, 1, 0);    // Rotate along y axis
     modelMatrix.rotate(g_xAngle, 1, 0, 0);    // Rotate along x axis
 

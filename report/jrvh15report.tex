@@ -1,0 +1,53 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=0.75in]{geometry}
+\usepackage{layout}
+\usepackage{indentfirst}
+\usepackage{url}
+\setlength{\voffset}{-0.2in}
+
+%opening
+\title{Computer Graphics Summative Assignment}
+\author{000280744: jrvh15 - Z0966651}
+
+\begin{document}
+
+\maketitle
+
+\section{Question (a)}
+In GLSL (OpenGL Shading Language), qualifiers are given to variables, allowing 
+them to hold special meaning. The qualifiers are as follows:
+\enumerate
+\item{\textbf{Attribute}: Available only in vertex shaders, attribute variables 
+are declared as global variables and are used to pass per-vertex data to the 
+vertex shader. Variables marked as attribute variables are global 
+and may change per vertex; they are used when it is required to set variables 
+for every vertex. These variables are passed from the application to the vertex 
+shaders. This qualifier can only be used in vertex shaders, and can only be 
+read but not written in a vertex shader. This is because they contain vertex 
+data, and as such, the values will not be applicable directly in a fragment 
+shader.}
+\item{\textbf{Uniform}: A uniform variable is a global variable that can have 
+its value changed by primitive only, i.e. its value cannot be changed between a 
+\texttt{glBegin}/\texttt{glEnd} pair. They are passed into the shaders (can be 
+either vertex/fragment shaders - if a uniform variable of the same name and 
+data type is declared in both, then the variable is shared between them) from 
+the application. This implies that it cannot be used for vertex attributes. They 
+are suitable for values that remain constant along a primitive, frame, or even 
+the whole scene. Uniform variables are read-only in both vertex and fragment 
+shaders.}
+\item{\textbf{Varying}: also declared as global, used for interpolated data 
+between a vertex and fragment shader by declaring the variable with the same 
+type and name in both. In order to compute values per fragment, it is often 
+required to access vertex interpolated data. This data may be accessible 
+to one but not the other: for example, normals are accessible to the vertex 
+shader, but not the fragment shader, being an attribute variable. Thus, once all 
+the vertices are processed and at the stage where primitives are assembled and 
+fragments computed, for each fragment there is a set of variables that are 
+interpolated automatically and provided to the fragment shader. These are 
+varying variables, which must be written on a vertex shader, where the value of 
+the variable is computed for each vertex. In the fragment shader, this variable 
+can only be read.}
+\section{Question (b)}
+
+\end{document}
